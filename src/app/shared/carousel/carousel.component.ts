@@ -15,7 +15,7 @@ import { VehicleDetailsImage } from '../../interfaces/vehicle.interface';
   template: `
     @if (slides.length > 0)  {
         <div class="relative">
-            <img class="w-144 h-72 object-cover self-center" [src]="slides[counter].src">
+            <img class="w-full h-96 object-cover self-center" [src]="slides[counter].src">
             @if (slides.length > 1) {
                 <div class="absolute top-1/2 left-0 w-4 h-4 ml-2">        
                     <button mat-mini-fab (click)="previous()">

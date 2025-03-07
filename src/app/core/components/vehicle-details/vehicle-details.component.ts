@@ -1,51 +1,79 @@
 import {
   Component,
+  effect,
+  inject,
   Inject,
 } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { CarouselComponent } from '../../../shared/carousel/carousel.component';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
+import { Vehicle, VehicleDetailsImage } from '../../../interfaces/vehicle.interface';
+import { VehicleService } from '../../../services/vehicle.service';
+import { EmptyListComponent } from '../../../shared/empty-list/empty-list.component';
 
 @Component({
-  selector: 'app-home',
+  selector: 'app-vehicle-details',
   standalone: true,
   imports: [
     CarouselComponent,
-    CommonModule
+    CommonModule,
+    EmptyListComponent
   ],
   template: `
-    <div class="p-5">
-      <b class="text-xl">{{data.vehicle.vehicleModel}} - {{data.vehicle.vehicleCompany}}</b>
-
-      <app-carousel [slides]="this.data.slides"></app-carousel>
-
-      <div class="flex flex-row">
-        <b class="mr-2">Mileage:</b>
-        <label>{{data.vehicle.mileage | number : '1.2-2' }}</label>
+    @if (vehicle) {      
+      <div class="p-5">
+        <b class="text-xl">{{vehicle.vehicleModel}} - {{vehicle.vehicleCompany}}</b>
+  
+        <app-carousel [slides]="slides"></app-carousel>
+  
+        <div class="flex flex-row">
+          <b class="mr-2">Mileage:</b>
+          <label>{{vehicle.mileage | number : '1.2-2' }}</label>
+        </div>
+        <div class="flex flex-row">
+          <b class="mr-2">Company:</b>
+          <label>{{vehicle.vehicleCompany}}</label>
+        </div>
+        <div class="flex flex-row">
+          <b class="mr-2">Engine:</b>
+          <label>{{vehicle.vehicleEngine}}</label>
+        </div>
+        <div class="flex flex-row">
+          <b class="mr-2">Model:</b>
+          <label>{{vehicle.vehicleModel}}</label>
+        </div>
       </div>
-      <div class="flex flex-row">
-        <b class="mr-2">Company:</b>
-        <label>{{data.vehicle.vehicleCompany}}</label>
-      </div>
-      <div class="flex flex-row">
-        <b class="mr-2">Engine:</b>
-        <label>{{data.vehicle.vehicleEngine}}</label>
-      </div>
-      <div class="flex flex-row">
-        <b class="mr-2">Model:</b>
-        <label>{{data.vehicle.vehicleModel}}</label>
-      </div>
-    </div>
+    }
+    @else {
+      <app-empty-list [message]="'This vehicle does not exist!'"></app-empty-list>
+    }
   `,
 })
 export class VehicleDetailsComponent {
+    private route = inject(ActivatedRoute);
+    private vehicleService = inject(VehicleService);
 
-    constructor(
-        public dialogRef: MatDialogRef<VehicleDetailsComponent>,
-        @Inject(MAT_DIALOG_DATA) public data: any
-    ) {}
+    vehicle: Vehicle | null = null;
+    slides: VehicleDetailsImage[] = [];
 
     ngOnInit(): void {
+      this.route.params.subscribe(params => {
+        this.vehicle = this.vehicleService.vehicleSignal().find(x => x.vehicleCompany == params['company'] && x.vehicleModel == params['model']) || null;
+
+        if (this.vehicle) {          
+          this.vehicle.vehicleImages.forEach((vehicle, index) => {
+            this.convertFileToDataURL(vehicle).then(dataURL => {
+              const image: VehicleDetailsImage = {
+                src: dataURL,
+                id: index.toString()
+              }
+              this.slides.push(image)
+            });
+          });
+        }
+
+      });
     }
 
     convertFileToDataURL(file: File): Promise<string> {

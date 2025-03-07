@@ -114,11 +114,17 @@ export class AddVehicleComponent {
   }
 
   onSubmit(): void {
-    if (this.vehicleForm.valid) {
-      this.vehicleService.addVehicle(this.vehicleForm.value)
-      this.snackBar.open('Vehicle saved successfully!', 'Okay' , { duration: 2000 });
-      this.router.navigate(['/home']);
-    } 
+    const exist = this.vehicleService.vehicleSignal().find(x => x.vehicleCompany == this.vehicleForm.value.vehicleCompany && x.vehicleModel == this.vehicleForm.value.vehicleModel) || null;
+    if (exist) {
+      this.snackBar.open('This vehicle already exists!', 'Okay' , { duration: 2000 });
+    }
+    else {
+      if (this.vehicleForm.valid) {
+        this.vehicleService.addVehicle(this.vehicleForm.value)
+        this.snackBar.open('Vehicle saved successfully!', 'Okay' , { duration: 2000 });
+        this.router.navigate(['/home']);
+      } 
+    }
   }
 
   onCompanyChange(company: string) {

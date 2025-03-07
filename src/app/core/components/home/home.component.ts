@@ -9,6 +9,7 @@ import { VehicleService } from '../../../services/vehicle.service';
 import { MatCardModule } from '@angular/material/card';
 import { VehicleDetailsComponent } from '../vehicle-details/vehicle-details.component';
 import { MatDialog } from '@angular/material/dialog'
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-home',
@@ -21,7 +22,7 @@ import { MatDialog } from '@angular/material/dialog'
     @if (vehicles.length > 0) {
       <div class="grid md:grid-cols-4 gap-4 p-15">
         @for (vehicle of vehicles; track $index) {
-          <mat-card class="cursor-pointer" (click)="openDialog(vehicle)">
+          <mat-card class="cursor-pointer" (click)="open(vehicle)">
             <mat-card-header>
               <div class="flex flex-col place-content-center p-3 w-full">
                 @if (vehicleImages[$index]) {
@@ -38,13 +39,13 @@ import { MatDialog } from '@angular/material/dialog'
       </div>
     }
     @else {
-      <app-empty-list></app-empty-list>
+      <app-empty-list [message]="'You don’t have any vehicle yet...'"></app-empty-list>
     }
   `,
 })
 export class HomeComponent {
   private vehicleService = inject(VehicleService);
-  private dialog = inject(MatDialog);
+  private router = inject(Router);
 
   vehicles: Vehicle[] = [];
 
@@ -84,24 +85,8 @@ export class HomeComponent {
     });
   }
 
-  openDialog(vehicle: Vehicle): void {
-    var slides: VehicleDetailsImage[] = [];
-    vehicle.vehicleImages.forEach((vehicle, index) => {
-      this.convertFileToDataURL(vehicle).then(dataURL => {
-        const image: VehicleDetailsImage = {
-          src: dataURL,
-          id: index.toString()
-        }
-        slides.push(image)
-      });
-    });
-
-    const dialogRef = this.dialog.open(VehicleDetailsComponent, {
-      data: {
-        vehicle: vehicle,
-        slides: slides
-      }
-    });
+  open(vehicle: Vehicle): void {
+    this.router.navigate(['/vehicle', vehicle.vehicleCompany, vehicle.vehicleModel]);
   }
 
 }
